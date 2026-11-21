@@ -24,7 +24,7 @@ interface MediaCarouselProps {
   title: string;
   code: string;
   store: string;
-  aspectRatio?: string; // e.g. "aspect-[3/4]" or "aspect-[4/5]"
+  aspectRatio?: string; // e.g. "aspect-video" (16:9 YouTube full video ratio)
   onSlideClick?: (index: number) => void;
   className?: string;
   initialSlide?: number;
@@ -38,7 +38,7 @@ export function MediaCarousel({
   title,
   code,
   store,
-  aspectRatio = 'aspect-[3/4]',
+  aspectRatio = 'aspect-video',
   onSlideClick,
   className = '',
   initialSlide = 0,
@@ -203,7 +203,7 @@ export function MediaCarousel({
 
   return (
     <div
-      className={`relative w-full ${aspectRatio} bg-[#F5F5F3] overflow-hidden select-none ${className}`}
+      className={`relative w-full ${aspectRatio} bg-[#0F172A] overflow-hidden select-none ${className}`}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       onTouchStart={handleTouchStart}
@@ -211,18 +211,28 @@ export function MediaCarousel({
     >
       {/* Slide Content */}
       {isCurrentVideo ? (
-        /* Video Slide: High-Definition native streaming player or fallback iframe */
+        /* Video Slide: High-Definition native streaming player in 16:9 YouTube Full Video Ratio */
         <div
-          className="relative w-full h-full bg-black flex items-center justify-center overflow-hidden cursor-pointer group/video"
+          className="relative w-full h-full bg-[#0F172A] flex items-center justify-center overflow-hidden cursor-pointer group/video"
           onClick={handleVideoContainerClick}
         >
+          {/* Ambient blurred backdrop for video poster */}
+          {media.find((m) => m.type === 'image')?.url && (
+            <div
+              className="absolute inset-0 bg-cover bg-center filter blur-xl opacity-25 scale-125 pointer-events-none"
+              style={{
+                backgroundImage: `url(${media.find((m) => m.type === 'image')?.url})`,
+              }}
+            />
+          )}
+
           {currentItem.directUrl ? (
             <video
               ref={videoRef}
               key={currentItem.directUrl}
               src={currentItem.directUrl}
               poster={media.find((m) => m.type === 'image')?.url}
-              className="w-full h-full object-cover object-top"
+              className="relative z-10 w-full h-full object-contain object-center"
               playsInline
               autoPlay
               loop
@@ -235,7 +245,7 @@ export function MediaCarousel({
               src={`${currentItem.embedUrl || currentItem.url}${
                 (currentItem.embedUrl || currentItem.url).includes('?') ? '&' : '?'
               }autoplay=1`}
-              className="w-full h-full border-0"
+              className="relative z-10 w-full h-full border-0"
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
               allowFullScreen
               title={`Video Reel for ${title}`}
@@ -276,17 +286,24 @@ export function MediaCarousel({
           )}
         </div>
       ) : (
-        /* Image Slide: Anchored to object-top to preserve the model's head and face */
+        /* Image Slide: Centered uncropped in 16:9 YouTube ratio with ambient blurred backdrop */
         <div
-          className="relative w-full h-full cursor-pointer bg-[#F5F5F3]"
+          className="relative w-full h-full cursor-pointer bg-[#0F172A] flex items-center justify-center overflow-hidden"
           onClick={() => onSlideClick && onSlideClick(currentIndex)}
         >
+          {/* Ambient blurred backdrop so the 16:9 widescreen frame is filled gracefully */}
+          <div
+            className="absolute inset-0 bg-cover bg-center filter blur-xl opacity-30 scale-125"
+            style={{ backgroundImage: `url(${currentItem.url})` }}
+          />
+
+          {/* Crisp, uncropped centered fashion photo in 16:9 widescreen frame */}
           <Image
             src={currentItem.url}
             alt={`${title} - view ${currentIndex + 1}`}
             fill
             sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-            className="object-cover object-top transition-all duration-500 ease-out"
+            className="relative z-10 object-contain object-center drop-shadow-lg transition-all duration-500 ease-out"
             priority={currentIndex === 0}
             unoptimized
           />

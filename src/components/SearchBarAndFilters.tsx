@@ -46,7 +46,7 @@ export function SearchBarAndFilters({
               type="text"
               value={searchQuery}
               onChange={(e) => onSearchChange(e.target.value)}
-              placeholder="Search kurtas, tops, tote bags, Amazon, Myntra..."
+              placeholder="Search product code..."
               className="w-full pl-9 pr-9 py-2 bg-white rounded-xl border border-[#EAE8E3] text-sm text-[#1F2937] placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#E07A5F]/30 focus:border-[#E07A5F] transition-all shadow-subtle"
             />
             {searchQuery && (

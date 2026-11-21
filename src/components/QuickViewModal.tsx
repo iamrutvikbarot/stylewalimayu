@@ -73,14 +73,14 @@ export function QuickViewModal({
 
         {/* Scrollable container for modal content */}
         <div className="overflow-y-auto no-scrollbar flex-1">
-          {/* Media Carousel (Images + Video with immediate playback in proper fashion portrait aspect ratio) */}
-          <div className="relative w-full aspect-[3/4] max-h-[58vh] bg-[#F5F5F3] overflow-hidden">
+          {/* Media Carousel (Images + Video in 16:9 YouTube Full Video Ratio) */}
+          <div className="relative w-full aspect-video bg-[#0F172A] overflow-hidden">
             <MediaCarousel
               media={mediaItems}
               title={product.title}
               code={product.code}
               store={product.store}
-              aspectRatio="aspect-[3/4]"
+              aspectRatio="aspect-video"
               initialSlide={initialSlide}
               isModal={true}
               initialMuted={false}

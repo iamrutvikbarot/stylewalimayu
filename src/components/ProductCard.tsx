@@ -61,61 +61,27 @@ export function ProductCard({
   };
 
   return (
-    <article className="group relative flex flex-col bg-white rounded-2xl border border-[#EAE8E3] overflow-hidden shadow-card hover:shadow-cardHover transition-all duration-300 hover:-translate-y-1">
-      {/* Media Carousel Container (3:4 aspect ratio matches native fashion photo proportions) */}
-      <div className="relative w-full aspect-[3/4] bg-[#F5F5F3] overflow-hidden">
-        <MediaCarousel
-          media={mediaItems}
-          title={product.title}
-          code={product.code}
-          store={product.store}
-          aspectRatio="aspect-[3/4]"
-          onSlideClick={(index) => onQuickView(product, index)}
-          autoPlayInterval={3200}
-        />
-
-        {/* Top-Left: Store Badge, Product Code, and Discount Tag */}
-        <div className="absolute top-2.5 left-2.5 z-10 flex items-center gap-1 flex-wrap pointer-events-none">
-          <span className="text-[10px] md:text-xs font-black tracking-wider uppercase px-2 py-0.5 rounded-md bg-[#1F2937] text-white shadow-md">
-            {product.code}
-          </span>
-          <span
-            className={`text-[10px] md:text-xs font-extrabold tracking-wider uppercase px-2 py-0.5 rounded-md shadow-sm border backdrop-blur-md bg-white/95 ${storeInfo.textClass} ${storeInfo.borderClass}`}
-          >
-            {storeInfo.tagLabel}
-          </span>
-          {discountPercent > 0 && (
-            <span className="text-[10px] md:text-xs font-bold text-white bg-[#10B981] px-1.5 py-0.5 rounded-md shadow-sm">
-              {discountPercent}% OFF
+    <article className="group relative flex flex-col sm:flex-row items-stretch bg-white rounded-2xl md:rounded-3xl border border-[#EAE8E3] overflow-hidden shadow-card hover:shadow-cardHover transition-all duration-300 hover:-translate-y-0.5">
+      {/* LEFT SIDE: Information about the product */}
+      <div className="flex-1 p-4 sm:p-5 md:p-6 flex flex-col justify-between order-2 sm:order-1 min-w-0">
+        <div className="space-y-2 sm:space-y-3">
+          {/* Top row: Product Code, Store Badge, and Discount */}
+          <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
+            <span className="text-xs sm:text-sm font-black tracking-wider uppercase px-2.5 py-1 rounded-lg bg-[#1F2937] text-white shadow-sm">
+              {product.code}
             </span>
-          )}
-        </div>
-
-        {/* Heart / Wishlist Button Overlay */}
-        <button
-          onClick={handleSaveClick}
-          className="absolute bottom-2.5 right-2.5 z-20 p-2 rounded-full bg-white/90 backdrop-blur-md text-[#1F2937] hover:text-[#E07A5F] shadow-sm hover:scale-110 active:scale-90 transition-all pointer-events-auto"
-          aria-label={isSaved ? "Remove from saved" : "Save this deal"}
-          title={isSaved ? "Saved" : "Save for later"}
-        >
-          <Heart
-            className={`w-4 h-4 transition-colors ${
-              isSaved ? 'fill-[#E07A5F] text-[#E07A5F]' : 'text-gray-600'
-            }`}
-          />
-        </button>
-      </div>
-
-      {/* Card Body */}
-      <div className="flex flex-col flex-1 p-3 md:p-3.5 justify-between">
-        <div className="space-y-1.5">
-          {/* Product Code & Company Subtitle */}
-          <div className="flex items-center gap-1.5 flex-wrap">
-            <span className="text-[11px] font-extrabold text-[#E07A5F] bg-[#E07A5F]/10 px-2 py-0.5 rounded-md border border-[#E07A5F]/20">
-              Code: {product.code}
+            <span
+              className={`text-xs sm:text-sm font-extrabold tracking-wider uppercase px-2.5 py-1 rounded-lg shadow-sm border bg-white ${storeInfo.textClass} ${storeInfo.borderClass}`}
+            >
+              {storeInfo.tagLabel}
             </span>
+            {discountPercent > 0 && (
+              <span className="text-xs sm:text-sm font-bold text-white bg-[#10B981] px-2 py-1 rounded-lg shadow-sm">
+                {discountPercent}% OFF
+              </span>
+            )}
             {product.company && (
-              <span className="text-[11px] font-semibold text-gray-500 truncate">
+              <span className="text-xs font-semibold text-gray-500 truncate">
                 by {product.company}
               </span>
             )}
@@ -124,58 +90,72 @@ export function ProductCard({
           {/* Product Title */}
           <h2
             onClick={() => onQuickView(product)}
-            className="text-xs md:text-sm font-semibold text-[#1F2937] line-clamp-2 leading-snug cursor-pointer hover:text-[#E07A5F] transition-colors"
+            className="text-sm sm:text-base md:text-lg font-bold text-[#1F2937] line-clamp-2 leading-snug cursor-pointer hover:text-[#E07A5F] transition-colors"
             title={product.title}
           >
             {product.title}
           </h2>
 
-          {/* Price Display */}
-          <div className="pt-1">
-            <div className="flex items-baseline gap-1.5 flex-wrap">
-              <span className="text-base md:text-lg font-black text-[#1F2937]">
+          {/* Pricing Display */}
+          <div className="pt-0.5">
+            <div className="flex items-baseline gap-2 flex-wrap">
+              <span className="text-xl sm:text-2xl md:text-3xl font-black text-[#1F2937]">
                 ₹{product.price.toLocaleString('en-IN')}
               </span>
               {hasDiscount && (
-                <span className="text-xs text-[#9CA3AF] line-through font-medium">
+                <span className="text-xs sm:text-sm text-[#9CA3AF] line-through font-medium">
                   ₹{product.originalPrice.toLocaleString('en-IN')}
                 </span>
               )}
             </div>
             {savingsAmount > 0 && (
-              <p className="text-[11px] font-semibold text-[#059669]">
+              <p className="text-xs font-bold text-[#059669] mt-0.5">
                 Save ₹{savingsAmount.toLocaleString('en-IN')} today
               </p>
             )}
           </div>
         </div>
 
-        {/* Actions Bar: Direct Shop Deal Button & Copy Link */}
-        <div className="pt-3 mt-2 border-t border-[#F3F4F6] flex items-center gap-1.5">
+        {/* Action Buttons: Direct Shop Deal, Wishlist, Share */}
+        <div className="pt-3 sm:pt-4 mt-3 border-t border-[#F3F4F6] flex items-center gap-2">
           {hasValidLink ? (
             <a
               href={product.affiliateUrl}
               target="_blank"
               rel="noopener noreferrer sponsored"
-              className="flex-1 inline-flex items-center justify-center gap-1.5 py-2 px-3 bg-[#E07A5F] hover:bg-[#C85A3F] text-white text-xs md:text-sm font-bold rounded-xl shadow-sm hover:shadow-md active:scale-98 transition-all"
+              className="flex-1 inline-flex items-center justify-center gap-1.5 py-2.5 px-4 bg-[#E07A5F] hover:bg-[#C85A3F] text-white text-xs sm:text-sm font-bold rounded-xl shadow-sm hover:shadow-md active:scale-98 transition-all"
               aria-label={`View deal for ${product.title} on ${product.store}`}
             >
-              <span>Shop Deal</span>
-              <ExternalLink className="w-3.5 h-3.5" />
+              <span>Shop Deal on {product.store}</span>
+              <ExternalLink className="w-4 h-4" />
             </a>
           ) : (
             <button
               onClick={() => onQuickView(product)}
-              className="flex-1 inline-flex items-center justify-center gap-1.5 py-2 px-3 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs md:text-sm font-bold rounded-xl transition-all"
+              className="flex-1 inline-flex items-center justify-center gap-1.5 py-2.5 px-4 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs sm:text-sm font-bold rounded-xl transition-all"
             >
               <span>View Details</span>
             </button>
           )}
 
+          {/* Wishlist Button */}
+          <button
+            onClick={handleSaveClick}
+            className="p-2.5 rounded-xl border border-[#EAE8E3] bg-[#FAFAF8] hover:bg-white text-gray-500 hover:text-[#E07A5F] transition-all active:scale-95"
+            aria-label={isSaved ? "Remove from saved" : "Save this deal"}
+            title={isSaved ? "Saved" : "Save for later"}
+          >
+            <Heart
+              className={`w-4 h-4 transition-colors ${
+                isSaved ? 'fill-[#E07A5F] text-[#E07A5F]' : 'text-gray-600'
+              }`}
+            />
+          </button>
+
           {/* Copy Link Button */}
           <button
             onClick={handleShareClick}
-            className="p-2 rounded-xl border border-[#EAE8E3] bg-[#FAFAF8] hover:bg-white text-gray-500 hover:text-[#E07A5F] hover:border-[#E07A5F] transition-colors active:scale-95"
+            className="p-2.5 rounded-xl border border-[#EAE8E3] bg-[#FAFAF8] hover:bg-white text-gray-500 hover:text-[#E07A5F] transition-all active:scale-95"
             aria-label={`Copy link for ${product.code}`}
             title={`Copy ${product.code} link`}
           >
@@ -185,6 +165,21 @@ export function ProductCard({
               <Share2 className="w-4 h-4" />
             )}
           </button>
+        </div>
+      </div>
+
+      {/* RIGHT SIDE: Photos and Reels in YouTube Full Video Ratio (16:9) */}
+      <div className="w-full sm:w-[50%] md:w-[48%] flex-shrink-0 bg-[#0F172A] flex items-center justify-center relative overflow-hidden order-1 sm:order-2">
+        <div className="w-full relative aspect-video overflow-hidden">
+          <MediaCarousel
+            media={mediaItems}
+            title={product.title}
+            code={product.code}
+            store={product.store}
+            aspectRatio="aspect-video"
+            onSlideClick={(index) => onQuickView(product, index)}
+            autoPlayInterval={3200}
+          />
         </div>
       </div>
     </article>

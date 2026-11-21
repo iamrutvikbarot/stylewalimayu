@@ -213,16 +213,19 @@ export default function StorefrontPage() {
         <main className="max-w-5xl mx-auto px-3.5 sm:px-4 py-6 md:py-8">
           {isLoading && !hasCatalogItems ? (
             /* Skeleton Loading State */
-            <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-5">
-              {[1, 2, 3, 4].map((n) => (
+            <div className="grid grid-cols-1 gap-4 md:gap-6">
+              {[1, 2].map((n) => (
                 <div
                   key={n}
-                  className="bg-white rounded-2xl border border-[#EAE8E3] overflow-hidden p-3 space-y-3 animate-pulse"
+                  className="bg-white rounded-2xl md:rounded-3xl border border-[#EAE8E3] overflow-hidden p-4 sm:p-6 flex flex-col sm:flex-row items-stretch gap-4 animate-pulse"
                 >
-                  <div className="w-full aspect-[4/5] bg-gray-200 rounded-xl" />
-                  <div className="h-4 bg-gray-200 rounded w-3/4" />
-                  <div className="h-3 bg-gray-100 rounded w-1/2" />
-                  <div className="h-8 bg-gray-200 rounded-xl mt-2" />
+                  <div className="flex-1 space-y-3">
+                    <div className="h-6 bg-gray-200 rounded-lg w-1/3" />
+                    <div className="h-5 bg-gray-200 rounded w-3/4" />
+                    <div className="h-8 bg-gray-200 rounded w-1/2" />
+                    <div className="h-10 bg-gray-200 rounded-xl mt-4" />
+                  </div>
+                  <div className="w-full sm:w-[50%] md:w-[48%] aspect-video bg-gray-200 rounded-2xl" />
                 </div>
               ))}
             </div>
@@ -332,7 +335,7 @@ export default function StorefrontPage() {
                   ✨ Updated live from Style Wali Mayu catalog
                 </span>
               </div>
-              <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-5">
+              <div className="grid grid-cols-1 gap-4 md:gap-6">
                 {filteredProducts.map((product) => (
                   <ProductCard
                     key={product.id}
