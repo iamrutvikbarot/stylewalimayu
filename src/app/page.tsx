@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
-import { products, Product, sampleCurations } from '@/data/products';
+import { Product } from '@/data/products';
 import { CREATOR_CONFIG } from '@/config/creator';
 import { HeaderProfile } from '@/components/HeaderProfile';
 import { QuickCtaBanner } from '@/components/QuickCtaBanner';
@@ -9,7 +9,6 @@ import { SearchBarAndFilters } from '@/components/SearchBarAndFilters';
 import { ProductCard } from '@/components/ProductCard';
 import { QuickViewModal } from '@/components/QuickViewModal';
 import { WishlistDrawer } from '@/components/WishlistDrawer';
-import { ProductManagerModal } from '@/components/ProductManagerModal';
 import { ComplianceFooter } from '@/components/ComplianceFooter';
 import { FloatingWhatsAppButton } from '@/components/FloatingWhatsAppButton';
 import { Toast } from '@/components/Toast';
@@ -21,11 +20,11 @@ import {
   Bell,
   ArrowRight,
   ShieldCheck,
-  PlusCircle,
 } from 'lucide-react';
 
 export default function StorefrontPage() {
-  const [catalog, setCatalog] = useState<Product[]>(products);
+  const [catalog, setCatalog] = useState<Product[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [selectedStore, setSelectedStore] = useState('All');
@@ -33,74 +32,45 @@ export default function StorefrontPage() {
   const [savedIds, setSavedIds] = useState<string[]>([]);
   const [quickViewProduct, setQuickViewProduct] = useState<Product | null>(null);
   const [isWishlistOpen, setIsWishlistOpen] = useState(false);
-  const [isManagerOpen, setIsManagerOpen] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [hasMounted, setHasMounted] = useState(false);
 
-  // Initialize from localStorage
+  // Fetch live products from Google Sheets API
+  const loadProducts = useCallback(async () => {
+    try {
+      setIsLoading(true);
+      const res = await fetch('/api/products');
+      if (res.ok) {
+        const data = await res.json();
+        if (data.products && Array.isArray(data.products)) {
+          setCatalog(data.products);
+        }
+      }
+    } catch (err) {
+      console.error('Failed to load products from Google Sheet:', err);
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  // Initial load
   useEffect(() => {
     setHasMounted(true);
+    loadProducts();
+
     try {
-      // Saved Wishlist
       const storedWishlist = localStorage.getItem('swm_saved_products');
       if (storedWishlist) {
         setSavedIds(JSON.parse(storedWishlist));
       }
-
-      // Custom Managed Catalog (if user added items)
-      const storedCatalog = localStorage.getItem('swm_custom_catalog');
-      if (storedCatalog) {
-        setCatalog(JSON.parse(storedCatalog));
-      }
     } catch {
-      // Ignore in private mode
+      // Ignore private mode errors
     }
-  }, []);
-
-  // Update localStorage when catalog changes
-  const updateCatalog = useCallback((newList: Product[]) => {
-    setCatalog(newList);
-    try {
-      localStorage.setItem('swm_custom_catalog', JSON.stringify(newList));
-    } catch {
-      // Ignore
-    }
-  }, []);
+  }, [loadProducts]);
 
   const showToast = useCallback((msg: string) => {
     setToastMessage(msg);
   }, []);
-
-  // Add Product
-  const handleAddProduct = useCallback(
-    (newProd: Product) => {
-      const updated = [newProd, ...catalog];
-      updateCatalog(updated);
-    },
-    [catalog, updateCatalog]
-  );
-
-  // Delete Product
-  const handleDeleteProduct = useCallback(
-    (id: string) => {
-      const updated = catalog.filter((p) => p.id !== id);
-      updateCatalog(updated);
-      showToast('Product removed from storefront');
-    },
-    [catalog, updateCatalog, showToast]
-  );
-
-  // Load 12 Samples for Preview
-  const handleLoadSamples = useCallback(() => {
-    updateCatalog(sampleCurations);
-    showToast('Loaded 12 curated demo finds! ✨');
-  }, [updateCatalog, showToast]);
-
-  // Clear All
-  const handleClearAll = useCallback(() => {
-    updateCatalog([]);
-    showToast('All products cleared');
-  }, [updateCatalog, showToast]);
 
   // Wishlist toggle
   const updateSaved = useCallback((newIds: string[]) => {
@@ -218,8 +188,6 @@ export default function StorefrontPage() {
           onShare={handleShareStorefront}
           savedCount={hasMounted ? savedIds.length : 0}
           onOpenWishlist={() => setIsWishlistOpen(true)}
-          onOpenProductManager={() => setIsManagerOpen(true)}
-          productCount={hasMounted ? catalog.length : 0}
         />
 
         {/* Quick CTA WhatsApp Banner */}
@@ -240,11 +208,25 @@ export default function StorefrontPage() {
 
         {/* Product Grid Area or Launching Soon State */}
         <main className="max-w-5xl mx-auto px-3.5 sm:px-4 py-6 md:py-8">
-          {!hasCatalogItems ? (
-            /* First Drop Coming Soon Aesthetic Showcase */
+          {isLoading && !hasCatalogItems ? (
+            /* Skeleton Loading State */
+            <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-5">
+              {[1, 2, 3, 4].map((n) => (
+                <div
+                  key={n}
+                  className="bg-white rounded-2xl border border-[#EAE8E3] overflow-hidden p-3 space-y-3 animate-pulse"
+                >
+                  <div className="w-full aspect-[4/5] bg-gray-200 rounded-xl" />
+                  <div className="h-4 bg-gray-200 rounded w-3/4" />
+                  <div className="h-3 bg-gray-100 rounded w-1/2" />
+                  <div className="h-8 bg-gray-200 rounded-xl mt-2" />
+                </div>
+              ))}
+            </div>
+          ) : !hasCatalogItems ? (
+            /* First Drop Coming Soon Showcase (when Google Sheet has no active items) */
             <section className="max-w-2xl mx-auto py-8 text-center space-y-6">
               <div className="relative p-6 sm:p-8 rounded-3xl bg-white border border-[#EAE8E3] shadow-card space-y-5">
-                {/* Decorative Pill */}
                 <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#E07A5F]/10 border border-[#E07A5F]/20 text-[#E07A5F] text-xs font-bold">
                   <Sparkles className="w-3.5 h-3.5" />
                   <span>Curations In Progress</span>
@@ -259,7 +241,6 @@ export default function StorefrontPage() {
                   </p>
                 </div>
 
-                {/* Categories Teaser Chips */}
                 <div className="flex flex-wrap items-center justify-center gap-2 pt-1">
                   <span className="text-xs font-semibold px-3 py-1.5 rounded-xl bg-[#FAFAF8] border border-[#EAE8E3] text-[#1F2937]">
                     👗 Ethnic Kurtas &amp; Anarkalis
@@ -275,7 +256,6 @@ export default function StorefrontPage() {
                   </span>
                 </div>
 
-                {/* Action Card: Join WhatsApp for first alert */}
                 <div className="mt-4 p-5 rounded-2xl bg-gradient-to-br from-[#FFF7ED] to-[#FEF2F2] border border-[#FDE68A]/80 text-left space-y-3">
                   <div className="flex items-center gap-2 text-xs font-bold text-[#D97706]">
                     <Bell className="w-4 h-4 animate-bounce" />
@@ -308,25 +288,6 @@ export default function StorefrontPage() {
                   </div>
                 </div>
 
-                {/* Creator Controls for adding first product */}
-                <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-3">
-                  <button
-                    onClick={() => setIsManagerOpen(true)}
-                    className="inline-flex items-center gap-2 px-4 py-2 bg-[#1F2937] hover:bg-black text-white text-xs font-bold rounded-xl shadow-sm transition-all active:scale-95"
-                  >
-                    <PlusCircle className="w-3.5 h-3.5" />
-                    <span>+ Add First Product</span>
-                  </button>
-                  <button
-                    onClick={handleLoadSamples}
-                    className="inline-flex items-center gap-2 px-4 py-2 bg-white border border-[#EAE8E3] hover:border-[#E07A5F] text-[#E07A5F] text-xs font-bold rounded-xl shadow-subtle transition-all active:scale-95"
-                  >
-                    <Sparkles className="w-3.5 h-3.5" />
-                    <span>Load 12 Demo Curations (Preview)</span>
-                  </button>
-                </div>
-
-                {/* Trust guarantee */}
                 <div className="flex items-center justify-center gap-2 text-xs text-gray-500 pt-2">
                   <ShieldCheck className="w-4 h-4 text-[#10B981]" />
                   <span>100% Genuine, Honest &amp; Hand-Tested Reviews</span>
@@ -364,13 +325,9 @@ export default function StorefrontPage() {
                 <span>
                   Showing <strong className="text-[#1F2937]">{filteredProducts.length}</strong> {filteredProducts.length === 1 ? 'deal' : 'deals'}
                 </span>
-                <button
-                  onClick={() => setIsManagerOpen(true)}
-                  className="text-[#E07A5F] font-bold hover:underline flex items-center gap-1"
-                >
-                  <PlusCircle className="w-3.5 h-3.5" />
-                  <span>Manage Products</span>
-                </button>
+                <span className="text-[11px] text-gray-400">
+                  ✨ Updated live from Style Wali Mayu catalog
+                </span>
               </div>
               <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-5">
                 {filteredProducts.map((product) => (
@@ -388,18 +345,6 @@ export default function StorefrontPage() {
           )}
         </main>
       </div>
-
-      {/* Product Manager Modal */}
-      <ProductManagerModal
-        isOpen={isManagerOpen}
-        onClose={() => setIsManagerOpen(false)}
-        products={catalog}
-        onAddProduct={handleAddProduct}
-        onDeleteProduct={handleDeleteProduct}
-        onLoadSamples={handleLoadSamples}
-        onClearAll={handleClearAll}
-        onShowToast={showToast}
-      />
 
       {/* Quick View Modal for Mayu's Personal Styling Tips */}
       <QuickViewModal

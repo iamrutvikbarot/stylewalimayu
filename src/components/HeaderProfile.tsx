@@ -6,7 +6,6 @@ import {
   Share2,
   Sparkles,
   Heart,
-  PlusCircle,
 } from 'lucide-react';
 import { InstagramIcon, YoutubeIcon, WhatsAppIcon } from './BrandIcons';
 import { BlueVerifiedTick } from './BlueVerifiedTick';
@@ -16,16 +15,12 @@ interface HeaderProfileProps {
   onShare: () => void;
   savedCount: number;
   onOpenWishlist: () => void;
-  onOpenProductManager: () => void;
-  productCount: number;
 }
 
 export function HeaderProfile({
   onShare,
   savedCount,
   onOpenWishlist,
-  onOpenProductManager,
-  productCount,
 }: HeaderProfileProps) {
   return (
     <header className="relative pt-8 pb-6 px-4 md:px-6 max-w-4xl mx-auto text-center">
@@ -35,16 +30,12 @@ export function HeaderProfile({
         className="absolute top-0 left-1/2 -translate-x-1/2 w-80 h-48 bg-gradient-to-b from-[#E07A5F]/20 via-[#F4A261]/10 to-transparent blur-3xl pointer-events-none -z-10" 
       />
 
-      {/* Top action bar: Manage products, Share storefront & Saved deals */}
+      {/* Top action bar: Live status indicator, Saved wishlist & Share storefront */}
       <div className="flex justify-between items-center mb-6">
-        <button
-          onClick={onOpenProductManager}
-          className="text-xs font-semibold uppercase tracking-wider text-[#E07A5F] bg-[#E07A5F]/10 px-3 py-1.5 rounded-full border border-[#E07A5F]/20 flex items-center gap-1.5 shadow-subtle hover:bg-[#E07A5F]/20 transition-all active:scale-95"
-          title="Click to add or manage storefront products"
-        >
-          <PlusCircle className="w-3.5 h-3.5 text-[#E07A5F]" />
-          <span>Manage Products ({productCount})</span>
-        </button>
+        <span className="text-xs font-semibold uppercase tracking-wider text-[#E07A5F] bg-[#E07A5F]/10 px-3 py-1.5 rounded-full border border-[#E07A5F]/20 flex items-center gap-1.5 shadow-subtle">
+          <span className="w-1.5 h-1.5 rounded-full bg-[#E07A5F] animate-ping" />
+          Live Curations
+        </span>
 
         <div className="flex items-center gap-2">
           {/* Wishlist button */}
