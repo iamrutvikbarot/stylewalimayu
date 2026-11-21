@@ -37,6 +37,15 @@ export const metadata: Metadata = {
     title: "Style Wali Mayu (@stylewalimayu) | Storefront",
     description: "Curating budget fashion, styling hacks & aesthetic finds under ₹999 ✨",
   },
+  icons: {
+    icon: [
+      { url: "/icon.png", sizes: "64x64", type: "image/png" },
+      { url: "/favicon.ico" },
+    ],
+    apple: [
+      { url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" },
+    ],
+  },
 };
 
 export default function RootLayout({
