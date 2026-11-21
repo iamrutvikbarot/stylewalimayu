@@ -83,6 +83,7 @@ export function QuickViewModal({
               aspectRatio="aspect-[3/4]"
               initialSlide={initialSlide}
               isModal={true}
+              initialMuted={false}
               autoPlayInterval={3200}
             />
 

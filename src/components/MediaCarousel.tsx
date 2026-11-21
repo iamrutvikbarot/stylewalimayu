@@ -29,7 +29,8 @@ interface MediaCarouselProps {
   className?: string;
   initialSlide?: number;
   autoPlayInterval?: number; // default 3200ms
-  isModal?: boolean; // If in modal, bigger touch targets
+  isModal?: boolean; // If in modal, bigger touch targets & unmuted by default
+  initialMuted?: boolean;
 }
 
 export function MediaCarousel({
@@ -43,10 +44,14 @@ export function MediaCarousel({
   initialSlide = 0,
   autoPlayInterval = 3200,
   isModal = false,
+  initialMuted,
 }: MediaCarouselProps) {
   const [currentIndex, setCurrentIndex] = useState(initialSlide);
   const [isHovered, setIsHovered] = useState(false);
-  const [isMuted, setIsMuted] = useState(true);
+  // Default to unmuted in modal (since modal opens on explicit user click), or muted on initial feed card
+  const [isMuted, setIsMuted] = useState(
+    initialMuted !== undefined ? initialMuted : (isModal ? false : true)
+  );
   const touchStartXRef = useRef<number | null>(null);
   const videoRef = useRef<HTMLVideoElement | null>(null);
 
@@ -54,6 +59,13 @@ export function MediaCarousel({
   const imageCount = media.filter((m) => m.type === 'image').length;
   const videoIndex = media.findIndex((m) => m.type === 'video');
   const hasVideo = videoIndex !== -1;
+
+  // Sync actual HTMLMediaElement.muted property with state (crucial for React DOM)
+  useEffect(() => {
+    if (videoRef.current) {
+      videoRef.current.muted = isMuted;
+    }
+  }, [isMuted]);
 
   // Auto-advance through images ONLY:
   // Once the last image is done, loop back to the first image.
@@ -77,15 +89,43 @@ export function MediaCarousel({
     return () => clearInterval(timer);
   }, [imageCount, isHovered, currentIndex, media, autoPlayInterval]);
 
-  // Attempt auto-play when video slide is active
+  // Attempt video playback when video slide is active
   useEffect(() => {
     if (media[currentIndex]?.type === 'video' && videoRef.current) {
-      videoRef.current.currentTime = 0;
-      videoRef.current.play().catch(() => {
-        // Autoplay may be restricted without mute, fallback gracefully
+      const v = videoRef.current;
+      v.muted = isMuted;
+      v.currentTime = 0;
+      v.play().catch(() => {
+        // If unmuted autoplay fails due to strict browser policy, fallback to muted playback
+        if (!v.muted) {
+          v.muted = true;
+          setIsMuted(true);
+          v.play().catch(() => {});
+        }
       });
     }
-  }, [currentIndex, media]);
+  }, [currentIndex, media, isMuted]);
+
+  const unmuteAndPlay = (e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    setIsMuted(false);
+    if (videoRef.current) {
+      videoRef.current.muted = false;
+      videoRef.current.play().catch(() => {});
+    }
+  };
+
+  const toggleSound = (e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    const nextMuted = !isMuted;
+    setIsMuted(nextMuted);
+    if (videoRef.current) {
+      videoRef.current.muted = nextMuted;
+      if (!nextMuted) {
+        videoRef.current.play().catch(() => {});
+      }
+    }
+  };
 
   const goToNext = useCallback(
     (e?: React.MouseEvent) => {
@@ -106,6 +146,20 @@ export function MediaCarousel({
   const goToIndex = (idx: number, e?: React.MouseEvent) => {
     if (e) e.stopPropagation();
     setCurrentIndex(idx);
+  };
+
+  // When clicking on the video slide
+  const handleVideoContainerClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (isMuted) {
+      // First click unmutes audio immediately!
+      unmuteAndPlay(e);
+    } else {
+      // If already playing audio on the card, open the Quick View modal
+      if (onSlideClick) {
+        onSlideClick(currentIndex);
+      }
+    }
   };
 
   // Touch Swipe handlers for mobile
@@ -159,8 +213,8 @@ export function MediaCarousel({
       {isCurrentVideo ? (
         /* Video Slide: High-Definition native streaming player or fallback iframe */
         <div
-          className="relative w-full h-full bg-black flex items-center justify-center overflow-hidden"
-          onClick={(e) => e.stopPropagation()}
+          className="relative w-full h-full bg-black flex items-center justify-center overflow-hidden cursor-pointer group/video"
+          onClick={handleVideoContainerClick}
         >
           {currentItem.directUrl ? (
             <video
@@ -194,19 +248,30 @@ export function MediaCarousel({
             <span>HD 4K Reel</span>
           </div>
 
-          {/* Sound Toggle (on card where native controls are hidden) */}
-          {!isModal && currentItem.directUrl && (
+          {/* Audio Status & Sound Control Button */}
+          {currentItem.directUrl && (
             <button
               type="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                setIsMuted((prev) => !prev);
-              }}
-              className="absolute bottom-2.5 right-2.5 z-30 p-2 rounded-full bg-black/70 hover:bg-black/90 text-white backdrop-blur-md shadow-md transition-all hover:scale-110 active:scale-90"
-              aria-label={isMuted ? 'Unmute video sound' : 'Mute video sound'}
-              title={isMuted ? 'Tap to unmute sound' : 'Tap to mute sound'}
+              onClick={toggleSound}
+              className={`absolute bottom-3 right-3 z-30 flex items-center gap-1.5 px-2.5 py-1.5 rounded-full text-xs font-bold backdrop-blur-md shadow-lg transition-all active:scale-95 ${
+                isMuted
+                  ? 'bg-[#E07A5F] hover:bg-[#D0694E] text-white animate-pulse'
+                  : 'bg-black/75 hover:bg-black text-white'
+              }`}
+              aria-label={isMuted ? 'Unmute video audio' : 'Mute video audio'}
+              title={isMuted ? 'Click to unmute sound' : 'Click to mute sound'}
             >
-              {isMuted ? <VolumeX className="w-3.5 h-3.5" /> : <Volume2 className="w-3.5 h-3.5" />}
+              {isMuted ? (
+                <>
+                  <VolumeX className="w-3.5 h-3.5" />
+                  <span>Tap for Sound</span>
+                </>
+              ) : (
+                <>
+                  <Volume2 className="w-3.5 h-3.5 text-[#10B981]" />
+                  <span>Audio On</span>
+                </>
+              )}
             </button>
           )}
         </div>
@@ -264,13 +329,16 @@ export function MediaCarousel({
                 <button
                   key={idx}
                   type="button"
-                  onClick={(e) => goToIndex(idx, e)}
+                  onClick={(e) => {
+                    goToIndex(idx, e);
+                    unmuteAndPlay(e);
+                  }}
                   className={`flex items-center gap-1 text-[10px] font-black px-2 py-0.5 rounded-full transition-all ${
                     isActive
                       ? 'bg-[#E07A5F] text-white shadow-sm'
                       : 'bg-white/20 text-white/90 hover:bg-white/40'
                   }`}
-                  title="Play Video Reel"
+                  title="Play Video Reel with Audio"
                 >
                   <Play className="w-2.5 h-2.5 fill-current" />
                   <span>Reel</span>
@@ -299,9 +367,12 @@ export function MediaCarousel({
       {hasVideo && !isCurrentVideo && !isModal && (
         <button
           type="button"
-          onClick={(e) => goToIndex(videoIndex, e)}
+          onClick={(e) => {
+            goToIndex(videoIndex, e);
+            unmuteAndPlay(e);
+          }}
           className="absolute top-2.5 right-2.5 z-20 inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-black/75 hover:bg-black text-white text-[10px] font-black backdrop-blur-md shadow-sm transition-transform hover:scale-105 active:scale-95 border border-white/10"
-          title="Watch Video Reel"
+          title="Watch Video Reel with Audio"
         >
           <Play className="w-2.5 h-2.5 fill-white text-white" />
           <span>Watch Reel</span>
