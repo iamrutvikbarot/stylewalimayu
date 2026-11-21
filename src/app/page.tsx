@@ -3,8 +3,7 @@
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { Product } from '@/data/products';
 import { CREATOR_CONFIG } from '@/config/creator';
-import { HeaderProfile } from '@/components/HeaderProfile';
-import { QuickCtaBanner } from '@/components/QuickCtaBanner';
+import { CompactHeader } from '@/components/CompactHeader';
 import { SearchBarAndFilters } from '@/components/SearchBarAndFilters';
 import { ProductCard } from '@/components/ProductCard';
 import { QuickViewModal } from '@/components/QuickViewModal';
@@ -186,15 +185,12 @@ export default function StorefrontPage() {
 
       {/* Main Content Area */}
       <div className="flex-1">
-        {/* Creator Header Profile with Real Photo & Blue Tick */}
-        <HeaderProfile
+        {/* Sleek Compact Header (Takes ~48px so product section opens directly above the fold) */}
+        <CompactHeader
           onShare={handleShareStorefront}
           savedCount={hasMounted ? savedIds.length : 0}
           onOpenWishlist={() => setIsWishlistOpen(true)}
         />
-
-        {/* Quick CTA WhatsApp Banner */}
-        <QuickCtaBanner />
 
         {/* Search & Category Filter Section (Sticky on scroll) */}
         <SearchBarAndFilters
@@ -209,8 +205,8 @@ export default function StorefrontPage() {
           totalResults={filteredProducts.length}
         />
 
-        {/* Product Grid Area or Launching Soon State */}
-        <main className="max-w-5xl mx-auto px-3.5 sm:px-4 py-6 md:py-8">
+        {/* Product Grid Area opens directly without scrolling */}
+        <main className="max-w-5xl mx-auto px-3.5 sm:px-4 py-3 sm:py-4 md:py-6">
           {isLoading && !hasCatalogItems ? (
             /* Skeleton Loading State */
             <div className="grid grid-cols-1 gap-4 md:gap-6">
