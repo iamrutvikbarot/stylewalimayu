@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { ArrowUp, ShieldCheck, Heart, Mail } from 'lucide-react';
+import { CREATOR_CONFIG } from '@/config/creator';
 
 export function ComplianceFooter() {
   const scrollToTop = () => {
@@ -28,7 +29,7 @@ export function ComplianceFooter() {
 
           <div className="flex items-center gap-3">
             <a
-              href="mailto:collabs@stylewalimayu.com"
+              href={`mailto:${CREATOR_CONFIG.collabEmail}`}
               className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border border-[#EAE8E3] text-xs font-semibold text-[#1F2937] hover:border-[#E07A5F] hover:text-[#E07A5F] transition-colors"
             >
               <Mail className="w-3.5 h-3.5" />

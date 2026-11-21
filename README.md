@@ -65,7 +65,7 @@ Designed as a blend between high-end creator storefronts (Wishlink, LTK) and a c
    - Prominent **Affiliate Disclosure**:
      > *"Affiliate Disclosure: Some of the links on this website are affiliate links. If you make a purchase through them, I may earn a small commission at zero additional cost to you. I only recommend products I genuinely curate."*
    - Advertising Standards Council of India (**ASCI**) & Consumer Protection Act 2019 (**CCPA**) compliance statement.
-   - Copyright © Style Wali Mayu, Brand collaboration contact (`collabs@stylewalimayu.com`), and back-to-top button.
+   - Copyright © Style Wali Mayu, Brand collaboration contact (`rutvikbarot11@gmail.com`), and back-to-top button.
 
 ---
 

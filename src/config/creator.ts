@@ -25,5 +25,5 @@ export const CREATOR_CONFIG = {
   },
 
   // Business & Collabs
-  collabEmail: "collabs@stylewalimayu.com",
+  collabEmail: "rutvikbarot11@gmail.com",
 };
