@@ -31,6 +31,7 @@ export default function StorefrontPage() {
   const [sortBy, setSortBy] = useState('featured');
   const [savedIds, setSavedIds] = useState<string[]>([]);
   const [quickViewProduct, setQuickViewProduct] = useState<Product | null>(null);
+  const [quickViewSlide, setQuickViewSlide] = useState(0);
   const [isWishlistOpen, setIsWishlistOpen] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [hasMounted, setHasMounted] = useState(false);
@@ -136,12 +137,14 @@ export default function StorefrontPage() {
 
         // Search filter
         if (searchQuery.trim() !== '') {
-          const q = searchQuery.toLowerCase();
+          const q = searchQuery.toLowerCase().trim();
           const matchTitle = item.title.toLowerCase().includes(q);
+          const matchCode = item.code ? item.code.toLowerCase().includes(q) : false;
+          const matchCleanCode = item.code ? item.code.replace('#', '').toLowerCase().includes(q) : false;
           const matchStore = item.store.toLowerCase().includes(q);
+          const matchCompany = item.company ? item.company.toLowerCase().includes(q) : false;
           const matchCategory = item.category.toLowerCase().includes(q);
-          const matchBadge = item.badge ? item.badge.toLowerCase().includes(q) : false;
-          if (!matchTitle && !matchStore && !matchCategory && !matchBadge) {
+          if (!matchTitle && !matchCode && !matchCleanCode && !matchStore && !matchCompany && !matchCategory) {
             return false;
           }
         }
@@ -337,7 +340,10 @@ export default function StorefrontPage() {
                     isSaved={hasMounted && savedIds.includes(product.id)}
                     onToggleSave={handleToggleSave}
                     onCopyLink={handleCopyLink}
-                    onQuickView={(p) => setQuickViewProduct(p)}
+                    onQuickView={(p, slide = 0) => {
+                      setQuickViewProduct(p);
+                      setQuickViewSlide(slide);
+                    }}
                   />
                 ))}
               </div>
@@ -346,7 +352,7 @@ export default function StorefrontPage() {
         </main>
       </div>
 
-      {/* Quick View Modal for Mayu's Personal Styling Tips */}
+      {/* Quick View Modal for Styling & Full-Res Media Carousel */}
       <QuickViewModal
         product={quickViewProduct}
         onClose={() => setQuickViewProduct(null)}
@@ -357,6 +363,7 @@ export default function StorefrontPage() {
         }
         onToggleSave={handleToggleSave}
         onCopyLink={handleCopyLink}
+        initialSlide={quickViewSlide}
       />
 
       {/* Wishlist / Saved Items Drawer */}

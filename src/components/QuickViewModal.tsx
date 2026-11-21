@@ -1,17 +1,17 @@
 'use client';
 
 import React from 'react';
-import Image from 'next/image';
 import {
   X,
   ExternalLink,
   Share2,
   Heart,
-  Sparkles,
   ShieldCheck,
-  Star,
+  Video,
 } from 'lucide-react';
 import { Product, STORE_CONFIG } from '@/data/products';
+import { MediaCarousel } from './MediaCarousel';
+import { getProductMedia } from '@/lib/sheets';
 
 interface QuickViewModalProps {
   product: Product | null;
@@ -19,6 +19,7 @@ interface QuickViewModalProps {
   isSaved: boolean;
   onToggleSave: (id: string) => void;
   onCopyLink: (product: Product) => void;
+  initialSlide?: number;
 }
 
 export function QuickViewModal({
@@ -27,6 +28,7 @@ export function QuickViewModal({
   isSaved,
   onToggleSave,
   onCopyLink,
+  initialSlide = 0,
 }: QuickViewModalProps) {
   if (!product) return null;
 
@@ -36,30 +38,34 @@ export function QuickViewModal({
     textClass: 'text-gray-800',
     borderClass: 'border-gray-200',
     hex: '#6B7280',
-    tagLabel: product.store.toUpperCase(),
+    tagLabel: (product.store || 'STORE').toUpperCase(),
   };
 
-  const discountPercent = Math.round(
-    ((product.originalPrice - product.price) / product.originalPrice) * 100
-  );
+  const hasDiscount = product.originalPrice > product.price;
+  const discountPercent = hasDiscount
+    ? Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)
+    : 0;
   const savings = product.originalPrice - product.price;
+  const hasValidLink = product.affiliateUrl && product.affiliateUrl !== '#';
+
+  const mediaItems = getProductMedia(product);
 
   return (
     <div
       role="dialog"
       aria-modal="true"
       aria-labelledby="modal-product-title"
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in"
+      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-sm animate-fade-in"
       onClick={onClose}
     >
       <div
-        className="relative w-full max-w-lg bg-white rounded-3xl overflow-hidden shadow-2xl border border-[#EAE8E3] animate-slide-up flex flex-col max-h-[90vh]"
+        className="relative w-full max-w-lg bg-white rounded-3xl overflow-hidden shadow-2xl border border-[#EAE8E3] animate-slide-up flex flex-col max-h-[92vh]"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Close Button */}
         <button
           onClick={onClose}
-          className="absolute top-3 right-3 z-20 p-2 rounded-full bg-white/80 hover:bg-white text-gray-700 shadow-md transition-all hover:scale-105 active:scale-95"
+          className="absolute top-3 right-3 z-30 p-2 rounded-full bg-white/85 hover:bg-white text-gray-700 shadow-md transition-all hover:scale-105 active:scale-95"
           aria-label="Close modal"
         >
           <X className="w-5 h-5" />
@@ -67,44 +73,54 @@ export function QuickViewModal({
 
         {/* Scrollable container for modal content */}
         <div className="overflow-y-auto no-scrollbar flex-1">
-          {/* Product Image */}
-          <div className="relative w-full aspect-[4/3] sm:aspect-[16/10] bg-[#F5F5F3]">
-            <Image
-              src={product.imageUrl}
-              alt={product.title}
-              fill
-              sizes="(max-width: 640px) 100vw, 500px"
-              className="object-cover object-center"
-              priority
+          {/* Media Carousel (Images + Video with immediate playback in proper fashion portrait aspect ratio) */}
+          <div className="relative w-full aspect-[3/4] max-h-[58vh] bg-[#F5F5F3] overflow-hidden">
+            <MediaCarousel
+              media={mediaItems}
+              title={product.title}
+              code={product.code}
+              store={product.store}
+              aspectRatio="aspect-[3/4]"
+              initialSlide={initialSlide}
+              isModal={true}
+              autoPlayInterval={3200}
             />
-            <div className="absolute top-3 left-3 flex items-center gap-1.5">
+
+            {/* Badges Overlay */}
+            <div className="absolute top-3 left-3 flex items-center gap-1.5 flex-wrap pointer-events-none z-10">
+              <span className="text-xs font-black uppercase px-2.5 py-1 rounded-lg shadow-sm bg-[#1F2937] text-white">
+                {product.code}
+              </span>
               <span
                 className={`text-xs font-black uppercase px-2.5 py-1 rounded-lg shadow-sm border bg-white/95 ${storeInfo.textClass} ${storeInfo.borderClass}`}
               >
                 {storeInfo.tagLabel}
               </span>
-              <span className="text-xs font-bold text-white bg-[#10B981] px-2 py-1 rounded-lg shadow-sm">
-                {discountPercent}% OFF
-              </span>
+              {discountPercent > 0 && (
+                <span className="text-xs font-bold text-white bg-[#10B981] px-2 py-1 rounded-lg shadow-sm">
+                  {discountPercent}% OFF
+                </span>
+              )}
             </div>
           </div>
 
           {/* Details Body */}
           <div className="p-5 md:p-6 space-y-4">
-            {/* Rating & Badge */}
+            {/* Code & Brand */}
             <div className="flex items-center justify-between flex-wrap gap-2">
-              {product.badge && (
-                <span className="text-xs font-semibold text-[#E07A5F] bg-[#E07A5F]/10 px-3 py-1 rounded-full border border-[#E07A5F]/20">
-                  {product.badge}
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-extrabold text-[#E07A5F] bg-[#E07A5F]/10 px-2.5 py-1 rounded-lg border border-[#E07A5F]/20">
+                  Product Code: {product.code}
                 </span>
-              )}
-              {product.rating && (
-                <div className="flex items-center gap-1 text-xs text-[#6B7280]">
-                  <Star className="w-3.5 h-3.5 fill-[#D97706] text-[#D97706]" />
-                  <span className="font-bold text-[#1F2937]">{product.rating}</span>
-                  <span>({product.reviewCount} customer reviews)</span>
-                </div>
-              )}
+                {product.company && (
+                  <span className="text-xs font-bold text-[#4B5563] bg-gray-100 px-2.5 py-1 rounded-lg">
+                    Brand: {product.company}
+                  </span>
+                )}
+              </div>
+              <span className="text-xs font-bold uppercase tracking-wider text-gray-500">
+                {product.store}
+              </span>
             </div>
 
             {/* Title */}
@@ -123,36 +139,48 @@ export function QuickViewModal({
                   <span className="text-2xl font-black text-[#1F2937]">
                     ₹{product.price.toLocaleString('en-IN')}
                   </span>
-                  <span className="text-sm text-gray-400 line-through">
-                    ₹{product.originalPrice.toLocaleString('en-IN')}
+                  {hasDiscount && (
+                    <span className="text-sm text-gray-400 line-through">
+                      ₹{product.originalPrice.toLocaleString('en-IN')}
+                    </span>
+                  )}
+                </div>
+              </div>
+              {savings > 0 && (
+                <div className="text-right">
+                  <span className="inline-block px-2.5 py-1 rounded-full bg-[#ECFDF5] text-[#059669] text-xs font-bold border border-[#A7F3D0]">
+                    Save ₹{savings.toLocaleString('en-IN')}
                   </span>
                 </div>
-              </div>
-              <div className="text-right">
-                <span className="inline-block px-2.5 py-1 rounded-full bg-[#ECFDF5] text-[#059669] text-xs font-bold border border-[#A7F3D0]">
-                  You save ₹{savings.toLocaleString('en-IN')}
-                </span>
-              </div>
+              )}
             </div>
 
-            {/* Mayu's Personal Styling Tips Card */}
-            {product.stylingTip && (
-              <div className="p-4 rounded-2xl bg-gradient-to-br from-[#FFF7ED] to-[#FEF2F2] border border-[#FDE68A]/60 space-y-1.5">
-                <div className="flex items-center gap-1.5 text-xs font-bold text-[#D97706]">
-                  <Sparkles className="w-4 h-4" />
-                  <span>Mayu&apos;s Styling &amp; Sizing Tip</span>
+            {/* Direct Video Reel button if videoUrl exists */}
+            {product.videoUrl && (
+              <a
+                href={product.videoUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center justify-between p-3.5 rounded-2xl bg-gradient-to-r from-[#FFF7ED] to-[#FEF3C7] border border-[#FDE68A] hover:border-[#F59E0B] shadow-sm transition-all group"
+              >
+                <div className="flex items-center gap-2.5 text-xs font-bold text-[#B45309]">
+                  <div className="w-7 h-7 rounded-lg bg-[#D97706]/15 flex items-center justify-center text-[#D97706] group-hover:scale-105 transition-transform">
+                    <Video className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <p className="font-extrabold text-[#92400E]">Watch Original 4K HD Video</p>
+                    <p className="text-[10px] text-[#B45309]/80 font-medium">Open high-res reel directly in Google Drive</p>
+                  </div>
                 </div>
-                <p className="text-xs md:text-sm text-[#4B5563] leading-relaxed">
-                  &ldquo;{product.stylingTip}&rdquo;
-                </p>
-              </div>
+                <ExternalLink className="w-4 h-4 text-[#B45309] group-hover:translate-x-0.5 transition-transform" />
+              </a>
             )}
 
             {/* Trust badge */}
             <div className="flex items-center gap-2 text-xs text-gray-500 pt-1">
               <ShieldCheck className="w-4 h-4 text-[#10B981] flex-shrink-0" />
               <span>
-                Verified genuine link from {product.store}. Opens official store app/site.
+                Verified direct deal link to {product.store}. Opens retailer site directly.
               </span>
             </div>
           </div>
@@ -181,15 +209,21 @@ export function QuickViewModal({
           </button>
 
           {/* Main Direct Affiliate Button */}
-          <a
-            href={product.affiliateUrl}
-            target="_blank"
-            rel="noopener noreferrer sponsored"
-            className="flex-1 py-3 px-4 rounded-2xl bg-[#E07A5F] hover:bg-[#C85A3F] text-white font-bold text-sm flex items-center justify-center gap-2 shadow-md hover:shadow-lg transition-all active:scale-98"
-          >
-            <span>Shop Now on {product.store}</span>
-            <ExternalLink className="w-4 h-4" />
-          </a>
+          {hasValidLink ? (
+            <a
+              href={product.affiliateUrl}
+              target="_blank"
+              rel="noopener noreferrer sponsored"
+              className="flex-1 py-3 px-4 rounded-2xl bg-[#E07A5F] hover:bg-[#C85A3F] text-white font-bold text-sm flex items-center justify-center gap-2 shadow-md hover:shadow-lg transition-all active:scale-98"
+            >
+              <span>Shop Deal on {product.store}</span>
+              <ExternalLink className="w-4 h-4" />
+            </a>
+          ) : (
+            <div className="flex-1 py-3 px-4 rounded-2xl bg-gray-100 text-gray-500 font-bold text-sm text-center">
+              Link Coming Soon
+            </div>
+          )}
         </div>
       </div>
     </div>

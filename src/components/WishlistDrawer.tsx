@@ -82,26 +82,36 @@ export function WishlistDrawer({
               >
                 {/* Thumbnail */}
                 <div
-                  className="relative w-16 h-20 rounded-xl overflow-hidden bg-gray-100 flex-shrink-0 cursor-pointer"
+                  className="relative w-16 h-20 rounded-xl overflow-hidden bg-gray-100 flex-shrink-0 cursor-pointer flex items-center justify-center"
                   onClick={() => {
                     onClose();
                     onQuickView(product);
                   }}
                 >
-                  <Image
-                    src={product.imageUrl}
-                    alt={product.title}
-                    fill
-                    sizes="64px"
-                    className="object-cover"
-                  />
+                  {product.imageUrl ? (
+                    <Image
+                      src={product.imageUrl}
+                      alt={product.title}
+                      fill
+                      sizes="64px"
+                      className="object-cover"
+                      unoptimized
+                    />
+                  ) : (
+                    <span className="text-[10px] font-black text-[#E07A5F]">{product.code}</span>
+                  )}
                 </div>
 
                 {/* Info */}
                 <div className="flex-1 min-w-0 space-y-1">
-                  <span className="text-[10px] font-bold uppercase text-[#E07A5F]">
-                    {product.store}
-                  </span>
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-[10px] font-black text-[#E07A5F] bg-[#E07A5F]/10 px-1.5 py-0.5 rounded">
+                      {product.code}
+                    </span>
+                    <span className="text-[10px] font-bold uppercase text-gray-500">
+                      {product.store}
+                    </span>
+                  </div>
                   <p
                     className="text-xs font-semibold text-[#1F2937] line-clamp-2 leading-snug cursor-pointer hover:text-[#E07A5F]"
                     onClick={() => {

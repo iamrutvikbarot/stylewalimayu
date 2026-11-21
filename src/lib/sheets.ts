@@ -1,10 +1,11 @@
 import { Product } from '@/data/products';
+import { MediaItem } from '@/components/MediaCarousel';
 
 export const GOOGLE_SHEET_ID = '1wuVOr3UqXmRXEKHYYN97Ecq-xacre1tXzpfPRYfvfiw';
 export const GOOGLE_SHEET_CSV_URL = `https://docs.google.com/spreadsheets/d/${GOOGLE_SHEET_ID}/export?format=csv`;
 
 /**
- * RFC 4180 compliant CSV parser that handles commas, quotes, and newlines inside cells
+ * RFC 4180 compliant CSV parser
  */
 function parseCSV(text: string): string[][] {
   const rows: string[][] = [];
@@ -52,8 +53,20 @@ function parseCSV(text: string): string[][] {
 }
 
 /**
- * Standardize category strings into our system slugs:
- * 'ethnic' | 'western' | 'accessories' | 'home'
+ * Optimize and upgrade image URLs to crystal-clear retina resolution
+ */
+export function optimizeImageUrl(url: string | undefined): string {
+  if (!url) return '';
+  const clean = url.trim();
+  if (clean.includes('assets.myntassets.com')) {
+    // Upgrade Myntra CDN to 1080x1440 ultra-high-definition resolution with 100% quality
+    return clean.replace(/h_\d+,q_\d+,w_\d+/, 'h_1440,q_100,w_1080');
+  }
+  return clean;
+}
+
+/**
+ * Standardize category strings into our system slugs
  */
 function normalizeCategory(categoryStr: string): string {
   const c = (categoryStr || '').toLowerCase().trim();
@@ -82,9 +95,9 @@ function parsePrice(val: string | undefined): number {
 }
 
 /**
- * Check if an image URL is valid and reachable
+ * Check if a URL is valid and reachable
  */
-function isValidUrl(url: string | undefined): boolean {
+export function isValidUrl(url: string | undefined): url is string {
   if (!url) return false;
   const clean = url.trim();
   return (
@@ -95,14 +108,80 @@ function isValidUrl(url: string | undefined): boolean {
 }
 
 /**
- * Fetch and parse products from the live Google Sheet
+ * Convert Google Drive / YouTube video links into embeddable preview URLs
+ */
+export function getEmbedVideoUrl(url: string | undefined): string | null {
+  if (!isValidUrl(url)) return null;
+  const clean = (url || '').trim();
+
+  // Google Drive: https://drive.google.com/file/d/11HwQaz3sXhrTmQcAb3m3AJSfUgiyUs2o/view?usp=drive_link
+  const driveMatch = clean.match(/drive\.google\.com\/file\/d\/([a-zA-Z0-9_-]+)/);
+  if (driveMatch && driveMatch[1]) {
+    return `https://drive.google.com/file/d/${driveMatch[1]}/preview`;
+  }
+
+  // YouTube / Shorts
+  const ytMatch = clean.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|shorts\/))([a-zA-Z0-9_-]+)/);
+  if (ytMatch && ytMatch[1]) {
+    return `https://www.youtube.com/embed/${ytMatch[1]}`;
+  }
+
+  return clean;
+}
+
+/**
+ * Convert a product's images and videos into a unified list of MediaItems for the carousel
+ */
+export function getProductMedia(product: Product): MediaItem[] {
+  const items: MediaItem[] = [];
+
+  // Add all valid images with high-definition resolution optimization
+  if (product.images && product.images.length > 0) {
+    product.images.forEach((img) => {
+      if (isValidUrl(img)) {
+        items.push({ type: 'image', url: optimizeImageUrl(img) });
+      }
+    });
+  } else if (isValidUrl(product.imageUrl)) {
+    items.push({ type: 'image', url: optimizeImageUrl(product.imageUrl) });
+  }
+
+  // Add video if provided
+  const video = product.videoUrl || (product.videoUrls && product.videoUrls[0]);
+  if (video && isValidUrl(video)) {
+    const clean = video.trim();
+    const driveMatch = clean.match(/drive\.google\.com\/file\/d\/([a-zA-Z0-9_-]+)/);
+    if (driveMatch && driveMatch[1]) {
+      const driveId = driveMatch[1];
+      items.push({
+        type: 'video',
+        url: video,
+        directUrl: `/api/video?id=${driveId}`, // High quality original 4K/1080p stream
+        embedUrl: `https://drive.google.com/file/d/${driveId}/preview`,
+      });
+    } else {
+      const embed = getEmbedVideoUrl(video);
+      items.push({
+        type: 'video',
+        url: video,
+        directUrl: clean.endsWith('.mp4') ? clean : undefined,
+        embedUrl: embed || video,
+      });
+    }
+  }
+
+  return items;
+}
+
+/**
+ * Fetch and parse products strictly from the live Google Sheet
  */
 export async function fetchProductsFromGoogleSheets(): Promise<Product[]> {
   try {
     const response = await fetch(GOOGLE_SHEET_CSV_URL, {
-      next: { revalidate: 60 }, // Revalidate every 60 seconds
+      cache: 'no-store', // Always fetch fresh
       headers: {
-        'User-Agent': 'Mozilla/5.0 (compatible; StyleWaliMayu/1.0; +https://stylewalimayu.vercel.app)',
+        'User-Agent': 'Mozilla/5.0 (compatible; StyleWaliMayu/1.0)',
       },
     });
 
@@ -150,19 +229,20 @@ export async function fetchProductsFromGoogleSheets(): Promise<Product[]> {
       const productName = (record['Product Name'] || '').trim();
       const status = (record['Status'] || 'Active').toLowerCase().trim();
 
-      // Only import active products that have a title
+      // Only import active products that have a product title
       if (!productName || (status !== 'active' && status !== 'published')) {
         continue;
       }
 
-      const productCode = (record['Product Code'] || '').trim();
+      const productCode = (record['Product Code'] || '').trim() || `#${products.length + 1 < 10 ? '0' : ''}${products.length + 1}`;
       const storeRaw = (record['Store'] || 'Myntra').trim();
-      const store = (storeRaw as Product['store']) || 'Myntra';
+      const store = storeRaw || 'Myntra';
+      const company = (record['Company'] || '').trim();
       const category = normalizeCategory(record['Category'] || '');
       const mrp = parsePrice(record['MRP']);
       const offerPrice = parsePrice(record['Offer Price']);
-      const affiliateLink = (record['Affiliate Link'] || '').trim();
-      const company = (record['Company'] || '').trim();
+      const rawAffiliateLink = (record['Affiliate Link'] || '').trim();
+      const affiliateLink = isValidUrl(rawAffiliateLink) ? rawAffiliateLink : '#';
 
       // Collect all valid images from Image URL 1..5
       const images: string[] = [];
@@ -170,34 +250,39 @@ export async function fetchProductsFromGoogleSheets(): Promise<Product[]> {
       for (const key of imageKeys) {
         const imgVal = record[key];
         if (isValidUrl(imgVal)) {
-          images.push(imgVal.trim());
+          images.push(optimizeImageUrl(imgVal));
         }
       }
 
-      const primaryImage =
-        images.length > 0
-          ? images[0]
-          : 'https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=800&q=80';
+      // Collect video URLs
+      const videoUrls: string[] = [];
+      ['Video URL 1', 'Video URL 2'].forEach((k) => {
+        const v = record[k];
+        if (isValidUrl(v)) {
+          videoUrls.push(v.trim());
+        }
+      });
 
+      const primaryImage = images.length > 0 ? images[0] : '';
       const finalPrice = offerPrice > 0 ? offerPrice : mrp;
       const finalOriginal = mrp > 0 ? mrp : finalPrice;
 
       products.push({
-        id: productCode ? productCode.replace('#', 'swm-') : `swm-${products.length + 1}`,
+        id: productCode.replace('#', 'swm-').toLowerCase(),
+        code: productCode, // e.g. "#01", "#02"
         title: productName,
+        company: company || undefined,
         category,
         price: finalPrice,
         originalPrice: finalOriginal,
-        store: ['Myntra', 'Ajio', 'Amazon', 'Meesho', 'Flipkart'].includes(store)
-          ? store
-          : 'Myntra',
+        store,
         imageUrl: primaryImage,
-        affiliateUrl: affiliateLink || 'https://myntra.com',
+        images,
+        videoUrls,
+        videoUrl: videoUrls.length > 0 ? videoUrls[0] : undefined,
+        affiliateUrl: affiliateLink,
         isTrending: true,
-        badge: company ? `${company} ✨` : 'Trending Pick 🌸',
-        rating: 4.8,
-        reviewCount: Math.floor(Math.random() * 400) + 150,
-        stylingTip: `Pair this gorgeous ${company || ''} piece with minimal silver jewelry, open curls, and nude flats for an effortless chic style!`,
+        badge: company ? `${company}` : undefined,
       });
     }
 
