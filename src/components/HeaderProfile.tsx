@@ -3,35 +3,48 @@
 import React from 'react';
 import Image from 'next/image';
 import {
-  Check,
   Share2,
   Sparkles,
   Heart,
-  BadgeCheck,
+  PlusCircle,
 } from 'lucide-react';
 import { InstagramIcon, YoutubeIcon, WhatsAppIcon } from './BrandIcons';
+import { BlueVerifiedTick } from './BlueVerifiedTick';
+import { CREATOR_CONFIG } from '@/config/creator';
 
 interface HeaderProfileProps {
   onShare: () => void;
   savedCount: number;
   onOpenWishlist: () => void;
+  onOpenProductManager: () => void;
+  productCount: number;
 }
 
-export function HeaderProfile({ onShare, savedCount, onOpenWishlist }: HeaderProfileProps) {
+export function HeaderProfile({
+  onShare,
+  savedCount,
+  onOpenWishlist,
+  onOpenProductManager,
+  productCount,
+}: HeaderProfileProps) {
   return (
     <header className="relative pt-8 pb-6 px-4 md:px-6 max-w-4xl mx-auto text-center">
       {/* Decorative Warm Ambient Glow */}
       <div 
         aria-hidden="true" 
-        className="absolute top-0 left-1/2 -translate-x-1/2 w-72 h-44 bg-gradient-to-b from-[#E07A5F]/15 via-[#F4A261]/10 to-transparent blur-3xl pointer-events-none -z-10" 
+        className="absolute top-0 left-1/2 -translate-x-1/2 w-80 h-48 bg-gradient-to-b from-[#E07A5F]/20 via-[#F4A261]/10 to-transparent blur-3xl pointer-events-none -z-10" 
       />
 
-      {/* Top action bar: Share storefront & Saved deals */}
+      {/* Top action bar: Manage products, Share storefront & Saved deals */}
       <div className="flex justify-between items-center mb-6">
-        <span className="text-xs font-semibold uppercase tracking-wider text-[#E07A5F] bg-[#E07A5F]/10 px-3 py-1 rounded-full border border-[#E07A5F]/20 flex items-center gap-1.5">
-          <span className="w-1.5 h-1.5 rounded-full bg-[#E07A5F] animate-ping" />
-          Live Curations
-        </span>
+        <button
+          onClick={onOpenProductManager}
+          className="text-xs font-semibold uppercase tracking-wider text-[#E07A5F] bg-[#E07A5F]/10 px-3 py-1.5 rounded-full border border-[#E07A5F]/20 flex items-center gap-1.5 shadow-subtle hover:bg-[#E07A5F]/20 transition-all active:scale-95"
+          title="Click to add or manage storefront products"
+        >
+          <PlusCircle className="w-3.5 h-3.5 text-[#E07A5F]" />
+          <span>Manage Products ({productCount})</span>
+        </button>
 
         <div className="flex items-center gap-2">
           {/* Wishlist button */}
@@ -62,48 +75,47 @@ export function HeaderProfile({ onShare, savedCount, onOpenWishlist }: HeaderPro
         </div>
       </div>
 
-      {/* Profile Avatar with Aesthetic Gradient Ring */}
+      {/* Profile Avatar with Aesthetic Gradient Ring & Real Photo */}
       <div className="relative inline-block mb-3.5">
         <div className="p-1 rounded-full bg-gradient-to-tr from-[#E07A5F] via-[#F4A261] to-[#E76F51] shadow-card">
-          <div className="relative w-24 h-24 md:w-28 md:h-28 rounded-full overflow-hidden border-2 border-white bg-[#F3F4F6]">
-            {/* Real aesthetic fashion portrait */}
+          <div className="relative w-28 h-28 md:w-32 md:h-32 rounded-full overflow-hidden border-3 border-white bg-[#F3F4F6] shadow-inner">
+            {/* Real photo of Mayu */}
             <Image
-              src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80"
-              alt="Style Wali Mayu profile photo"
+              src={CREATOR_CONFIG.avatarUrl}
+              alt={CREATOR_CONFIG.name}
               fill
-              sizes="(max-width: 768px) 96px, 112px"
+              sizes="(max-width: 768px) 112px, 128px"
               priority
-              className="object-cover"
+              className="object-cover object-top"
             />
           </div>
         </div>
 
-        {/* Verified Badge on Avatar */}
+        {/* Blue Verified Badge on bottom-right of avatar */}
         <div 
-          className="absolute bottom-0 right-0 p-1 bg-white rounded-full shadow-md border border-[#EAE8E3]" 
+          className="absolute bottom-0.5 right-0.5 p-0.5 bg-white rounded-full shadow-md border border-white" 
           title="Verified Creator"
         >
-          <div className="w-6 h-6 rounded-full bg-[#E07A5F] flex items-center justify-center text-white">
-            <Check className="w-3.5 h-3.5 stroke-[3]" />
-          </div>
+          <BlueVerifiedTick className="w-6 h-6" />
         </div>
       </div>
 
-      {/* Creator Name & Handle */}
+      {/* Creator Name with Blue Tick */}
       <div className="flex items-center justify-center gap-1.5 mb-0.5">
         <h1 className="text-2xl md:text-3xl font-extrabold text-[#1F2937] tracking-tight">
-          Style Wali Mayu
+          {CREATOR_CONFIG.name}
         </h1>
-        <BadgeCheck className="w-5 h-5 text-[#E07A5F] fill-[#E07A5F]/20" />
+        <BlueVerifiedTick className="w-6 h-6 flex-shrink-0" />
       </div>
 
+      {/* Handle */}
       <p className="text-sm font-semibold text-[#E07A5F] mb-2.5">
-        @stylewalimayu
+        {CREATOR_CONFIG.handle}
       </p>
 
       {/* Bio */}
       <p className="text-sm md:text-base text-[#4B5563] max-w-md mx-auto leading-relaxed mb-4">
-        Curating budget fashion, styling hacks &amp; aesthetic finds under ₹999 ✨
+        {CREATOR_CONFIG.bio}
       </p>
 
       {/* Social Proof Tags / Badges */}
@@ -113,7 +125,7 @@ export function HeaderProfile({ onShare, savedCount, onOpenWishlist }: HeaderPro
           120k+ Besties
         </span>
         <span className="inline-flex items-center gap-1 text-xs font-medium text-[#4B5563] bg-white px-3 py-1 rounded-full border border-[#EAE8E3] shadow-subtle">
-          🛍️ 100% Tested Quality
+          👗 Handpicked Quality
         </span>
         <span className="inline-flex items-center gap-1 text-xs font-medium text-[#4B5563] bg-white px-3 py-1 rounded-full border border-[#EAE8E3] shadow-subtle">
           ⚡ Daily Price Drops
@@ -121,41 +133,41 @@ export function HeaderProfile({ onShare, savedCount, onOpenWishlist }: HeaderPro
       </div>
 
       {/* Social Media Link Buttons */}
-      <div className="flex items-center justify-center gap-2.5">
+      <div className="flex items-center justify-center gap-2.5 flex-wrap">
         {/* Instagram */}
         <a
-          href="https://instagram.com/stylewalimayu"
+          href={CREATOR_CONFIG.socials.instagram}
           target="_blank"
           rel="noopener noreferrer"
           className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white border border-[#EAE8E3] text-xs font-semibold text-[#1F2937] hover:border-[#E1306C] hover:text-[#E1306C] hover:shadow-sm transition-all"
-          aria-label="Style Wali Mayu on Instagram"
+          aria-label={`${CREATOR_CONFIG.name} on Instagram`}
         >
           <InstagramIcon className="w-4 h-4 text-[#E1306C]" />
           <span>Instagram</span>
         </a>
 
-        {/* YouTube */}
+        {/* WhatsApp Channel / Group */}
         <a
-          href="https://youtube.com/@stylewalimayu"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white border border-[#EAE8E3] text-xs font-semibold text-[#1F2937] hover:border-[#FF0000] hover:text-[#FF0000] hover:shadow-sm transition-all"
-          aria-label="Style Wali Mayu on YouTube"
-        >
-          <YoutubeIcon className="w-4 h-4 text-[#FF0000]" />
-          <span>YouTube</span>
-        </a>
-
-        {/* WhatsApp Channel */}
-        <a
-          href="https://whatsapp.com/channel/stylewalimayu"
+          href={CREATOR_CONFIG.whatsapp.channelUrl}
           target="_blank"
           rel="noopener noreferrer"
           className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white border border-[#EAE8E3] text-xs font-semibold text-[#1F2937] hover:border-[#25D366] hover:text-[#25D366] hover:shadow-sm transition-all"
-          aria-label="Style Wali Mayu WhatsApp Channel"
+          aria-label={`${CREATOR_CONFIG.name} WhatsApp Channel`}
         >
           <WhatsAppIcon className="w-4 h-4 text-[#25D366]" />
-          <span>WhatsApp</span>
+          <span>WhatsApp Channel</span>
+        </a>
+
+        {/* YouTube */}
+        <a
+          href={CREATOR_CONFIG.socials.youtube}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white border border-[#EAE8E3] text-xs font-semibold text-[#1F2937] hover:border-[#FF0000] hover:text-[#FF0000] hover:shadow-sm transition-all"
+          aria-label={`${CREATOR_CONFIG.name} on YouTube`}
+        >
+          <YoutubeIcon className="w-4 h-4 text-[#FF0000]" />
+          <span>YouTube</span>
         </a>
       </div>
     </header>

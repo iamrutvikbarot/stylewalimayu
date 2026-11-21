@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { Bell, ArrowRight, X } from 'lucide-react';
 import { WhatsAppIcon } from './BrandIcons';
+import { CREATOR_CONFIG } from '@/config/creator';
 
 export function QuickCtaBanner() {
   const [isDismissed, setIsDismissed] = useState(false);
@@ -67,7 +68,7 @@ export function QuickCtaBanner() {
           {/* Action Button & Dismiss */}
           <div className="flex items-center gap-2 flex-shrink-0">
             <a
-              href="https://chat.whatsapp.com/invite/stylewalimayu"
+              href={CREATOR_CONFIG.whatsapp.groupInviteUrl}
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-[#25D366] hover:bg-[#1EBE5D] text-white rounded-xl text-xs md:text-sm font-bold shadow-md hover:shadow-lg transition-all active:scale-95"

@@ -83,9 +83,17 @@ export const STORE_CONFIG: Record<
   },
 };
 
-export const products: Product[] = [
+/**
+ * Live Storefront Products (Currently Empty as requested)
+ */
+export const products: Product[] = [];
+
+/**
+ * Sample Curations for Instant Demo / Preview
+ */
+export const sampleCurations: Product[] = [
   {
-    id: 'prod-001',
+    id: 'sample-001',
     title: 'Floral Printed Pure Cotton Anarkali Kurta with Dupatta Set',
     category: 'ethnic',
     price: 899,
@@ -100,7 +108,7 @@ export const products: Product[] = [
     stylingTip: 'Pair with silver oxidized jhumkas, a beige clutch, and kolhapuri flats for an effortless college or festive brunch look.',
   },
   {
-    id: 'prod-002',
+    id: 'sample-002',
     title: 'Handcrafted Chikankari Georgette Kurti in Pastel Lilac with Slip',
     category: 'ethnic',
     price: 449,
@@ -115,7 +123,7 @@ export const products: Product[] = [
     stylingTip: 'Throw over white cotton palazzos with open hair and subtle dewy makeup. The lilac shade is pure aesthetic!',
   },
   {
-    id: 'prod-003',
+    id: 'sample-003',
     title: 'Oversized Linen Blend Drop-Shoulder Resort Shirt in Sage Green',
     category: 'western',
     price: 599,
@@ -130,7 +138,7 @@ export const products: Product[] = [
     stylingTip: 'Wear it unbuttoned over a white ribbed crop tank or french-tucked into high-waist trousers with small chunky gold hoops.',
   },
   {
-    id: 'prod-004',
+    id: 'sample-004',
     title: 'Korean Style Ribbed Knit Cropped Button-Front Cardigan',
     category: 'western',
     price: 499,
@@ -145,7 +153,7 @@ export const products: Product[] = [
     stylingTip: 'Pairs seamlessly with pleated tennis skirts or straight-leg light wash mom jeans. Soft, breathable knit for Indian weather.',
   },
   {
-    id: 'prod-005',
+    id: 'sample-005',
     title: 'Padded Quilted Croissant Cloud Shoulder Bag with Detachable Strap',
     category: 'accessories',
     price: 649,
@@ -160,7 +168,7 @@ export const products: Product[] = [
     stylingTip: 'Looks like a ₹5,000 designer purse! Fits your phone, lip gloss, keys, and airpods without feeling bulky.',
   },
   {
-    id: 'prod-006',
+    id: 'sample-006',
     title: 'Antique Brass Chandbali Jhumka Earrings with Faux Pearl Drops',
     category: 'accessories',
     price: 299,
@@ -175,7 +183,7 @@ export const products: Product[] = [
     stylingTip: 'Lightweight on the ears, doesn’t turn green or tarnish easily. Instant royal touch to any plain solid kurti.',
   },
   {
-    id: 'prod-007',
+    id: 'sample-007',
     title: 'Minimalist Ultra-Slim Rose Gold Stainless Steel Mesh Watch',
     category: 'accessories',
     price: 799,
@@ -190,7 +198,7 @@ export const products: Product[] = [
     stylingTip: 'The magnetic mesh clasp makes it fit any wrist size. Stack it with thin gold chain bracelets for an everyday elevated office look.',
   },
   {
-    id: 'prod-008',
+    id: 'sample-008',
     title: 'High-Rise Relaxed Wide-Leg Tailored Trousers in Oat Beige',
     category: 'western',
     price: 699,
@@ -205,7 +213,7 @@ export const products: Product[] = [
     stylingTip: 'The pleated front creates an elongating silhouette. Pair with white sneakers and a tucked-in tee for weekend errands.',
   },
   {
-    id: 'prod-009',
+    id: 'sample-009',
     title: 'Nordic Ribbed Donut Ceramic Flower Vase in Warm Matte Sand',
     category: 'home',
     price: 399,
@@ -220,7 +228,7 @@ export const products: Product[] = [
     stylingTip: 'Pop in 2-3 dried pampas grass stems and place on your bedside table or work desk for that Pinterest aesthetic!',
   },
   {
-    id: 'prod-010',
+    id: 'sample-010',
     title: 'Hand-Poured Soy Wax Scented Bubble Cube Candle Duo (Vanilla & Rose)',
     category: 'home',
     price: 249,
@@ -235,7 +243,7 @@ export const products: Product[] = [
     stylingTip: 'Smells heavenly even without burning. Perfect cozy addition to coffee trays, bookshelves, and vanity tables.',
   },
   {
-    id: 'prod-011',
+    id: 'sample-011',
     title: 'Jaipuri Block Print 100% Breathable Mulmul Cotton Straight Kurti',
     category: 'ethnic',
     price: 499,
@@ -250,7 +258,7 @@ export const products: Product[] = [
     stylingTip: 'The softest fabric you will ever touch. Zero shrinkage after wash. Style with oxidized silver studs and beige Kolhapuris.',
   },
   {
-    id: 'prod-012',
+    id: 'sample-012',
     title: '18K Gold Plated Thick Teardrop Chunky Water-Drop Hoop Earrings',
     category: 'accessories',
     price: 349,
