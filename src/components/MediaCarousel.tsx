@@ -48,12 +48,18 @@ export function MediaCarousel({
 }: MediaCarouselProps) {
   const [currentIndex, setCurrentIndex] = useState(initialSlide);
   const [isHovered, setIsHovered] = useState(false);
+  const [videoError, setVideoError] = useState(false);
   // Default to unmuted in modal (since modal opens on explicit user click), or muted on initial feed card
   const [isMuted, setIsMuted] = useState(
     initialMuted !== undefined ? initialMuted : (isModal ? false : true)
   );
   const touchStartXRef = useRef<number | null>(null);
   const videoRef = useRef<HTMLVideoElement | null>(null);
+
+  // Reset video error when slide changes
+  useEffect(() => {
+    setVideoError(false);
+  }, [currentIndex]);
 
   const total = media.length;
   const imageCount = media.filter((m) => m.type === 'image').length;
@@ -226,7 +232,7 @@ export function MediaCarousel({
             />
           )}
 
-          {currentItem.directUrl ? (
+          {currentItem.directUrl && !videoError ? (
             <video
               ref={videoRef}
               key={currentItem.directUrl}
@@ -239,6 +245,7 @@ export function MediaCarousel({
               muted={isMuted}
               controls={isModal}
               preload="auto"
+              onError={() => setVideoError(true)}
             />
           ) : (
             <iframe

@@ -53,15 +53,47 @@ function parseCSV(text: string): string[][] {
 }
 
 /**
- * Optimize and upgrade image URLs to crystal-clear retina resolution
+ * Extract Google Drive file ID from any Google Drive URL format:
+ * - https://drive.google.com/file/d/{id}/view...
+ * - https://drive.google.com/open?id={id}
+ * - https://drive.google.com/uc?id={id}
+ * - https://drive.usercontent.google.com/download?id={id}
+ * - https://lh3.googleusercontent.com/d/{id}
+ */
+export function extractGoogleDriveId(url: string | undefined): string | null {
+  if (!url) return null;
+  const clean = url.trim();
+  const fileMatch = clean.match(/\/file\/d\/([a-zA-Z0-9_-]+)/);
+  if (fileMatch && fileMatch[1]) return fileMatch[1];
+
+  const idParamMatch = clean.match(/[?&]id=([a-zA-Z0-9_-]+)/);
+  if (idParamMatch && idParamMatch[1]) return idParamMatch[1];
+
+  const dPathMatch = clean.match(/\/d\/([a-zA-Z0-9_-]+)/);
+  if (dPathMatch && dPathMatch[1]) return dPathMatch[1];
+
+  return null;
+}
+
+/**
+ * Optimize and upgrade image URLs to crystal-clear direct resolution.
+ * Supports Myntra, Meesho, and Google Drive links!
  */
 export function optimizeImageUrl(url: string | undefined): string {
   if (!url) return '';
   const clean = url.trim();
+
+  // If it's a Google Drive link, convert to Google's direct high-res CDN image URL
+  const driveId = extractGoogleDriveId(clean);
+  if (driveId) {
+    return `https://lh3.googleusercontent.com/d/${driveId}`;
+  }
+
+  // If it's Myntra CDN, upgrade to 1080x1440 ultra-high-definition resolution with 100% quality
   if (clean.includes('assets.myntassets.com')) {
-    // Upgrade Myntra CDN to 1080x1440 ultra-high-definition resolution with 100% quality
     return clean.replace(/h_\d+,q_\d+,w_\d+/, 'h_1440,q_100,w_1080');
   }
+
   return clean;
 }
 
@@ -114,10 +146,10 @@ export function getEmbedVideoUrl(url: string | undefined): string | null {
   if (!isValidUrl(url)) return null;
   const clean = (url || '').trim();
 
-  // Google Drive: https://drive.google.com/file/d/11HwQaz3sXhrTmQcAb3m3AJSfUgiyUs2o/view?usp=drive_link
-  const driveMatch = clean.match(/drive\.google\.com\/file\/d\/([a-zA-Z0-9_-]+)/);
-  if (driveMatch && driveMatch[1]) {
-    return `https://drive.google.com/file/d/${driveMatch[1]}/preview`;
+  // Google Drive
+  const driveId = extractGoogleDriveId(clean);
+  if (driveId) {
+    return `https://drive.google.com/file/d/${driveId}/preview`;
   }
 
   // YouTube / Shorts
@@ -150,9 +182,8 @@ export function getProductMedia(product: Product): MediaItem[] {
   const video = product.videoUrl || (product.videoUrls && product.videoUrls[0]);
   if (video && isValidUrl(video)) {
     const clean = video.trim();
-    const driveMatch = clean.match(/drive\.google\.com\/file\/d\/([a-zA-Z0-9_-]+)/);
-    if (driveMatch && driveMatch[1]) {
-      const driveId = driveMatch[1];
+    const driveId = extractGoogleDriveId(clean);
+    if (driveId) {
       items.push({
         type: 'video',
         url: video,
